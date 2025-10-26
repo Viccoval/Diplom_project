@@ -22,7 +22,7 @@ from django.urls import path, include
 from django.views.generic import RedirectView
 from rest_framework.routers import DefaultRouter
 from backends.views import ProductViewSet, OrderViewSet
-from backends.admin import admin_site
+
 
 
 router = DefaultRouter()
@@ -34,6 +34,6 @@ urlpatterns = [
     path('', RedirectView.as_view(url='api/', permanent=False)),
     path('api/', include('backends.urls')),
     path('api/auth/', include('retail_orders.auth_urls')),
-    path('admin/', admin_site.urls),
+    path('admin/', admin.site.urls),
 ]
 
