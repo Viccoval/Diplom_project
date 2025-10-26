@@ -16,15 +16,22 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
-from django.views.generic import RedirectView
 from django.urls import path, include
+from django.views.generic import RedirectView
 from rest_framework.routers import DefaultRouter
+from backends.views import ProductViewSet, OrderViewSet
+
 
 router = DefaultRouter()
+router.register(r'products', ProductViewSet)
+router.register(r'orders', OrderViewSet, basename='order')
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='api/')),
-    path('api/', include(router.urls)),
-    path('api/auth/', include('rest_framework.urls')),
+    path('admin/', admin.site.urls),
+    path('', RedirectView.as_view(url='api/', permanent=False)),
+    path('api/', include('backends.urls')),
+    path('api/auth/', include('retail_orders.auth_urls')),
 ]
+

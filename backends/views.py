@@ -1,11 +1,11 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Product, Order, OrderItem  # <-- Все модели из backends
-from .serializers import ProductSerializer, OrderSerializer
+from .models import Product, Order, OrderItem, Contact
+from .serializers import ProductSerializer, OrderSerializer, ContactSerializer
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -15,11 +15,17 @@ class ProductViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
 
 
+class ContactViewSet(viewsets.ModelViewSet):
+    queryset = Contact.objects.all()
+    serializer_class = ContactSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
 class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
     filterset_fields = ['status', 'created_at']
-    filter_backends = [DjangoFilterBackend]  # <-- Добавил для консистентности
+    filter_backends = [DjangoFilterBackend]
 
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user).prefetch_related(
@@ -78,4 +84,5 @@ class OrderViewSet(viewsets.ModelViewSet):
             order.save()
 
         return Response({'message': 'Заказ оформлен', 'total_price': order.total_price})
+
 
