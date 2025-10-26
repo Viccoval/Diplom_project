@@ -1,5 +1,11 @@
 from django.contrib import admin
+from .tasks import do_import
+from django.urls import path
+from django.contrib import messages
 from .models import Store, Category, Product, Order, OrderItem, Contact
+from django.http import HttpResponseRedirect
+import json
+
 
 @admin.register(Store)
 class StoreAdmin(admin.ModelAdmin):
@@ -17,12 +23,33 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
+    change_list_template = 'admin/product_change_list.html'
     list_display = ('name', 'store', 'category', 'price', 'stock', 'created_at', 'updated_at')
     search_fields = ('name',)
     list_filter = ('store', 'category')
     list_editable = ('price', 'stock')
     readonly_fields = ('created_at', 'updated_at')
     ordering = ('name',)
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('run-import/', self.run_import_view, name='run_import'),
+        ]
+        return custom_urls + urls
+
+    def run_import_view(self, request):
+        if request.method == 'POST':
+            data_str = request.POST.get('data', '[]')
+            try:
+                data = json.loads(data_str)
+                do_import.delay(data)
+                messages.success(request, "Задача импорта запущена")
+            except json.JSONDecodeError:
+                messages.error(request, "Ошибка: Неверный формат JSON в данных.")
+            return HttpResponseRedirect("../")
+        else:
+            return
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
