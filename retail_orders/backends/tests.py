@@ -6,11 +6,11 @@ from retail_orders.backends.models import Product, Order, OrderItem, Contact, St
 
 class ProductViewSetTest(APITestCase):
     def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='testpass')
         self.client = APIClient()
-        self.user = User.objects.create_user(username='testuser', password='password')
+        self.client.force_authenticate(user=self.user)  # Добавь это для аутентификации
         self.store = Store.objects.create(name='Test Store')
-        self.category = Category.objects.create(name='Test Category')
-        self.product = Product.objects.create(name='Test Product', price=10.0, stock=5, store=self.store, category=self.category)
+        self.product = Product.objects.create(store=self.store, name='Test Product', price=10.00, stock=100)
 
     def test_list_products(self):
         response = self.client.get('/api/products/')
@@ -67,7 +67,7 @@ class OrderViewSetTest(APITestCase):
         self.store = Store.objects.create(name='Test Store')
         self.category = Category.objects.create(name='Test Category')
         self.product = Product.objects.create(name='Test Product', price=10.0, stock=5, store=self.store, category=self.category)
-        self.order = Order.objects.create(user=self.user, status='pending', total_price=0)
+        self.order = Order.objects.create(user=self.user, status='pending')
 
     def test_list_orders_authenticated(self):
         self.client.force_authenticate(user=self.user)
