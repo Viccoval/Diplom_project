@@ -8,7 +8,8 @@ class ProductViewSetTest(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='testpass')
         self.client = APIClient()
-        self.client.force_authenticate(user=self.user)  # Добавь это для аутентификации
+        self.category = Category.objects.create(name='Test Category')
+        self.client.force_authenticate(user=self.user)
         self.store = Store.objects.create(name='Test Store')
         self.product = Product.objects.create(store=self.store, name='Test Product', price=10.00, stock=100)
 
@@ -96,7 +97,6 @@ class OrderViewSetTest(APITestCase):
     def test_remove_from_cart_success(self):
         self.client.force_authenticate(user=self.user)
         item = OrderItem.objects.create(order=self.order, product=self.product, quantity=2)
-        self.order.total_price = 20.0
         self.order.save()
         data = {'item_id': item.id}
         response = self.client.post(f'/api/orders/{self.order.id}/remove_from_cart/', data)
