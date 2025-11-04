@@ -21,7 +21,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
 from rest_framework.routers import DefaultRouter
-from backends.views import ProductViewSet, OrderViewSet
+from .backends.views import ProductViewSet, OrderViewSet
 
 
 
@@ -32,7 +32,7 @@ router.register(r'orders', OrderViewSet, basename='order')
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', RedirectView.as_view(url='api/', permanent=False)),
-    path('api/', include('backends.urls')),
+    path('api/', include('retail_orders.backends.urls')),
     path('api/auth/', include('retail_orders.auth_urls')),
     path('admin/', admin.site.urls),
 ]

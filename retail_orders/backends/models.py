@@ -61,6 +61,7 @@ class OrderItem(models.Model):
 
 class Contact(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contacts', null=True, blank=True)
+    address = models.TextField(blank=True)
     name = models.CharField(max_length=255)
     email = models.EmailField()
     phone = models.CharField(max_length=20, blank=True, null=True)
