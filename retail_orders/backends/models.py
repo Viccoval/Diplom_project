@@ -34,6 +34,8 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.name} ({self.store.name})"
 
+    class Meta:
+        ordering = ['-created_at']
 
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -49,6 +51,8 @@ class Order(models.Model):
     def total_price(self):
         return sum(item.product.price * item.quantity for item in self.orderitem_set.all())
 
+    class Meta:
+        ordering = ['-created_at']
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
@@ -70,4 +74,7 @@ class Contact(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        ordering = ['-created_at']
 

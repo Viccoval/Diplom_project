@@ -34,8 +34,9 @@ class OrderViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def add_to_cart(self, request):
         product_id = request.data.get('product_id')
-        quantity = request.data.get('quantity', 1)
-
+        quantity = int(request.data.get('quantity'))
+        if product_id.stock < quantity:
+            return Response({'error': 'Недостаточно товара'}, status=400)
         try:
             product = Product.objects.get(id=product_id)
         except Product.DoesNotExist:
@@ -46,8 +47,8 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         order, created = Order.objects.get_or_create(user=request.user, status='pending')
         OrderItem.objects.create(order=order, product=product, quantity=quantity)
-
-        order.total_price += product.price * quantity
+        OrderItem.quantity += quantity
+        OrderItem.save()
         order.save()
 
         return Response({'message': 'Добавлено в корзину', 'total_price': order.total_price},
@@ -60,7 +61,6 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         try:
             item = OrderItem.objects.get(id=item_id, order=order)
-            order.total_price -= item.product.price * item.quantity
             item.delete()
             order.save()
             return Response({'message': 'Удалено из корзины', 'total_price': order.total_price})
