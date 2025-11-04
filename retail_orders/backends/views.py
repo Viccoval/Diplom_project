@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Product, Order, OrderItem, Contact
@@ -28,6 +28,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     filterset_fields = ['status', 'created_at']
     filter_backends = [DjangoFilterBackend]
     throttle_classes = [AnonRateThrottle, UserRateThrottle]
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user).prefetch_related(
@@ -36,9 +37,8 @@ class OrderViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def add_to_cart(self, request):
         product_id = request.data.get('product_id')
-        quantity = int(request.data.get('quantity'))
-        if product_id.stock < quantity:
-            return Response({'error': 'Недостаточно товара'}, status=400)
+        quantity = int(request.data.get('quantity', 1))
+
         try:
             product = Product.objects.get(id=product_id)
         except Product.DoesNotExist:
@@ -47,14 +47,43 @@ class OrderViewSet(viewsets.ModelViewSet):
         if product.stock < quantity:
             return Response({'error': 'Недостаточно товара на складе'}, status=status.HTTP_400_BAD_REQUEST)
 
-        order, created = Order.objects.get_or_create(user=request.user, status='pending')
-        OrderItem.objects.create(order=order, product=product, quantity=quantity)
-        OrderItem.quantity += quantity
-        OrderItem.save()
-        order.save()
+        if not request.user.is_authenticated:
+            return Response({'message': 'Добавлено в корзину (аноним)'}, status=status.HTTP_201_CREATED)
 
-        return Response({'message': 'Добавлено в корзину', 'total_price': order.total_price},
-                        status=status.HTTP_201_CREATED)
+        order, created = Order.objects.get_or_create(user=request.user, status='pending')
+
+        order_item, created = OrderItem.objects.get_or_create(
+            order=order,
+            product=product,
+            defaults={'quantity': 0}
+        )
+        order_item.quantity += quantity
+        order_item.save()
+
+        return Response({'message': 'Добавлено в корзину'}, status=status.HTTP_201_CREATED)
+
+    # @action(detail=False, methods=['post'])
+    # def add_to_cart(self, request):
+    #     product_id = request.data.get('product_id')
+    #     quantity = int(request.data.get('quantity'))
+    #     if product_id.stock < quantity:
+    #         return Response({'error': 'Недостаточно товара'}, status=400)
+    #     try:
+    #         product = Product.objects.get(id=product_id)
+    #     except Product.DoesNotExist:
+    #         return Response({'error': 'Продукт не найден'}, status=status.HTTP_404_NOT_FOUND)
+    #
+    #     if product.stock < quantity:
+    #         return Response({'error': 'Недостаточно товара на складе'}, status=status.HTTP_400_BAD_REQUEST)
+    #
+    #     order, created = Order.objects.get_or_create(user=request.user, status='pending')
+    #     OrderItem.objects.create(order=order, product=product, quantity=quantity)
+    #     OrderItem.quantity += quantity
+    #     OrderItem.save()
+    #     order.save()
+    #
+    #     return Response({'message': 'Добавлено в корзину', 'total_price': order.total_price},
+    #                     status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'])
     def remove_from_cart(self, request, pk=None):
