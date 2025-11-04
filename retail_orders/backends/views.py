@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Product, Order, OrderItem, Contact
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from .serializers import ProductSerializer, OrderSerializer, ContactSerializer
 
 
@@ -26,6 +27,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     filterset_fields = ['status', 'created_at']
     filter_backends = [DjangoFilterBackend]
+    throttle_classes = [AnonRateThrottle, UserRateThrottle]
 
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user).prefetch_related(
