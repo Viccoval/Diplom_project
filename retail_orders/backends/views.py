@@ -1,6 +1,9 @@
-from rest_framework import viewsets, status, permissions
+from rest_framework import status, viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from social_django.utils import psa
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.db import transaction
 from django_filters.rest_framework import DjangoFilterBackend
@@ -134,4 +137,31 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         return Response({'message': 'Заказ оформлен', 'total_price': order.total_price})
 
+
+class SocialAuthView(APIView):
+    """
+    Класс для обработки авторизации через Google
+    """
+    @psa('social:complete')
+    def post(self, request, backend):
+        """
+        Обрабатывает POST-запрос с данными от Google
+        """
+        try:
+            user = request.backend.do_auth(request.data.get('access_token'))
+            if user:
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                    'user': {
+                        'id': user.id,
+                        'username': user.username,
+                        'email': user.email,
+                    }
+                })
+            else:
+                return Response({'error': 'Попробуй еще раз'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 

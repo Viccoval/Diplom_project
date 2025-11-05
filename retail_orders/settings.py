@@ -34,12 +34,14 @@ INSTALLED_APPS = [
     'django_filters',
     'retail_orders',
     'drf_spectacular',
+    'social_django',
 ]
 
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -152,3 +154,6 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = 'Google-id'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'Google-secret'
