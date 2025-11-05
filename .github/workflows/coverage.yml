@@ -22,10 +22,14 @@ jobs:
     - name: Run tests with coverage
       run: |
         coverage run manage.py test retail_orders.backends 
-        coverage report
+        coverage report xml:coverage.xml
     - name: Generate coverage report
       uses: codecov/codecov-action@v3
       with:
+        coverage_xml_path: coverage.xml
+        output: coverage-badge.png
         file: ./coverage.xml
+        push_to_branch: true
         fail_ci_if_error: false
+        target_branch: main
 
