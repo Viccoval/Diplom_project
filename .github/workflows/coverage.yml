@@ -26,20 +26,25 @@ jobs:
 
     - name: Run Django migrations
       run: |
-        python manage.py migrate 
+        python manage.py migrate
 
     - name: Run tests with coverage
       run: |
-        coverage run manage.py test retail_orders.backends 
-        coverage xml -o coverage.xml  
+        coverage run manage.py test retail_orders.backends  
+        coverage xml -o coverage.xml 
 
     - name: Generate coverage badge
       uses: tj-actions/coverage-badge-py@v2
       with:
-        coverage_xml_path: coverage.xml
-        output: coverage-badge.png
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        push_to_branch: true
-        target_branch: main
+        output: coverage-badge.svg
+
+    - name: Commit and push badge
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add coverage-badge.svg
+        git commit -m "Update coverage badge [skip ci]" || echo "No changes to commit"  
+        git push origin main 
+
 
 
