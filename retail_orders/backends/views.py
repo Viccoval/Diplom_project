@@ -10,6 +10,9 @@ from .serializers import ProductSerializer, OrderSerializer, ContactSerializer
 
 
 class ProductViewSet(viewsets.ModelViewSet):
+    """
+    Класс для создания модели Product
+    """
     queryset = Product.objects.select_related('store', 'category').all()
     serializer_class = ProductSerializer
     filterset_fields = ['store', 'price', 'category']
@@ -17,12 +20,18 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 
 class ContactViewSet(viewsets.ModelViewSet):
+    """
+    Класс для создания модели Contact
+    """
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class OrderViewSet(viewsets.ModelViewSet):
+    """
+    Класс для создания заказов, модель Order
+    """
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
     filterset_fields = ['status', 'created_at']
@@ -31,11 +40,17 @@ class OrderViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
+        """
+        Функция для сортировки заказов, возвращает только заказы текущего пользователя
+        """
         return Order.objects.filter(user=self.request.user).prefetch_related(
             'orderitem_set__product')
 
     @action(detail=False, methods=['post'])
     def add_to_cart(self, request):
+        """
+        Функция для добавления товара в корзину
+        """
         product_id = request.data.get('product_id')
         quantity = int(request.data.get('quantity', 1))
 
@@ -100,6 +115,9 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def checkout(self, request, pk=None):
+        """
+        Функция для обработки заказов
+        """
         order = self.get_object()
         if order.status != 'pending':
             return Response({'error': 'Заказ уже обработан'}, status=status.HTTP_400_BAD_REQUEST)

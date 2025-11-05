@@ -4,6 +4,9 @@ from django.core.validators import MinValueValidator
 
 
 class Store(models.Model):
+    """
+    Класс для создания магазина.
+    """
     name = models.CharField(max_length=100, unique=True)
     address = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -14,6 +17,9 @@ class Store(models.Model):
 
 
 class Category(models.Model):
+    """
+    Класс для создания Категории
+    """
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
 
@@ -22,6 +28,9 @@ class Category(models.Model):
 
 
 class Product(models.Model):
+    """
+    Класс для создания продукта
+    """
     name = models.CharField(max_length=100)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)])
@@ -38,6 +47,9 @@ class Product(models.Model):
         ordering = ['-created_at']
 
 class Order(models.Model):
+    """
+    Класс для создания Заказа
+    """
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     products = models.ManyToManyField(Product, through='OrderItem')
     status = models.CharField(max_length=20, choices=[('pending', 'Ожидает'), ('completed', 'Завершен')])
@@ -55,6 +67,9 @@ class Order(models.Model):
         ordering = ['-created_at']
 
 class OrderItem(models.Model):
+    """
+    Класс для подсчета позиций в заказе
+    """
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)])
@@ -64,6 +79,9 @@ class OrderItem(models.Model):
 
 
 class Contact(models.Model):
+    """
+    Класс для записи Контакта
+    """
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contacts', null=True, blank=True)
     address = models.TextField(blank=True)
     name = models.CharField(max_length=255)
