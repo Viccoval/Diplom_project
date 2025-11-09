@@ -34,9 +34,16 @@ jobs:
         coverage xml -o coverage.xml 
 
     - name: Generate coverage badge
-      uses: tj-actions/coverage-badge-py@v2
-      with:
-        output: coverage-badge.svg
+      run: |
+        COVERAGE=$(grep "TOTAL" coverage.txt | awk '{print $4}' | sed 's/%//')  
+        echo $COVERAGE > coverage_percentage.txt
+        cat > coverage-badge.svg << EOF
+        <svg xmlns="http://www.w3.org/2000/svg" width="120" height="20">
+          <rect width="50" height="20" fill="#555"/>
+          <rect x="50" width="70" height="20" fill="#4c1"/>
+          <text x="25" y="14" fill="#fff" font-family="Arial" font-size="11">coverage</text>
+          <text x="85" y="14" fill="#fff" font-family="Arial" font-size="11">$COVERAGE%</text>
+        </svg>
 
     - name: Commit and push badge
       run: |
