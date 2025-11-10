@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
+from easy_thumbnails.fields import ThumbnailerImageField
+from django.contrib.auth.models import User
 
 
 class Store(models.Model):
@@ -32,6 +34,7 @@ class Product(models.Model):
     Класс для создания продукта
     """
     name = models.CharField(max_length=100)
+    image = ThumbnailerImageField(upload_to='products/', blank=True, null=True)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)])
     store = models.ForeignKey(Store, on_delete=models.CASCADE)
@@ -51,6 +54,7 @@ class Order(models.Model):
     Класс для создания Заказа
     """
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    avatar = ThumbnailerImageField(upload_to='avatars/', blank=True, null=True)
     products = models.ManyToManyField(Product, through='OrderItem')
     status = models.CharField(max_length=20, choices=[('pending', 'Ожидает'), ('completed', 'Завершен')])
     created_at = models.DateTimeField(auto_now_add=True)
@@ -89,6 +93,7 @@ class Contact(models.Model):
     phone = models.CharField(max_length=20, blank=True, null=True)
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
 
     def __str__(self):
         return self.name

@@ -6,6 +6,9 @@ from social_django.utils import psa
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.db import transaction
+from django.shortcuts import render, redirect
+from .forms import ProductForm
+from .tasks import generate_thumbnails
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Product, Order, OrderItem, Contact
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
@@ -20,6 +23,34 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     filterset_fields = ['store', 'price', 'category']
     filter_backends = [DjangoFilterBackend]
+
+    def perform_create(self, serializer):
+        """
+        Вызов генерации для создания продукта
+        """
+        product = serializer.save()
+        if product.image:
+            generate_thumbnails.delay(product.image.name, ['product_medium'])
+
+    def perform_update(self, serializer):
+        """
+        Переопределяем после обновления продукта.
+        """
+        product = serializer.save()
+        if product.image:
+            generate_thumbnails.delay(product.image.name, ['product_medium'])
+
+    def upload_product(request):
+        if request.method == 'POST':
+            form = ProductForm(request.POST, request.FILES)
+            if form.is_valid():
+                product = form.save()
+                if product.image:
+                    generate_thumbnails.delay(product.image.name, ['product_medium'])
+                return redirect('product_list')
+        else:
+            form = ProductForm()
+        return render(request, 'upload_product.html', {'form': form})
 
 
 class ContactViewSet(viewsets.ModelViewSet):
@@ -80,28 +111,6 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         return Response({'message': 'Добавлено в корзину'}, status=status.HTTP_201_CREATED)
 
-    # @action(detail=False, methods=['post'])
-    # def add_to_cart(self, request):
-    #     product_id = request.data.get('product_id')
-    #     quantity = int(request.data.get('quantity'))
-    #     if product_id.stock < quantity:
-    #         return Response({'error': 'Недостаточно товара'}, status=400)
-    #     try:
-    #         product = Product.objects.get(id=product_id)
-    #     except Product.DoesNotExist:
-    #         return Response({'error': 'Продукт не найден'}, status=status.HTTP_404_NOT_FOUND)
-    #
-    #     if product.stock < quantity:
-    #         return Response({'error': 'Недостаточно товара на складе'}, status=status.HTTP_400_BAD_REQUEST)
-    #
-    #     order, created = Order.objects.get_or_create(user=request.user, status='pending')
-    #     OrderItem.objects.create(order=order, product=product, quantity=quantity)
-    #     OrderItem.quantity += quantity
-    #     OrderItem.save()
-    #     order.save()
-    #
-    #     return Response({'message': 'Добавлено в корзину', 'total_price': order.total_price},
-    #                     status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'])
     def remove_from_cart(self, request, pk=None):
@@ -164,4 +173,3 @@ class SocialAuthView(APIView):
                 return Response({'error': 'Попробуй еще раз'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-

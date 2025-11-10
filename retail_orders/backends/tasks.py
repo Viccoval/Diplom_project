@@ -1,4 +1,5 @@
 from celery import shared_task
+from easy_thumbnails.files import get_thumbnailer
 import time
 
 
@@ -18,3 +19,14 @@ def do_import(data):
     """
     print(f"Импортировано: {data}")
     return f'Импорт произведен'
+
+
+@shared_task
+def generate_thumbnails(image_field, aliases):
+    """
+    Задача Celery для загрузки изображения.
+    """
+    thumbnailer = get_thumbnailer(image_field)
+    for alias in aliases:
+        thumbnail = thumbnailer.get_thumbnail(alias)
+        print(f"Добавлена картинка: {thumbnail.url}")

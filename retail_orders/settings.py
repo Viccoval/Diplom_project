@@ -35,7 +35,17 @@ INSTALLED_APPS = [
     'retail_orders',
     'drf_spectacular',
     'social_django',
+    'easy_thumbnails',
 ]
+
+
+THUMBNAIL_ALIASES = {
+    '': {
+        'avatar_small': {'size': (100, 100), 'crop': True},
+        'product_medium': {'size': (300, 300), 'crop': False},
+    },
+}
+
 
 
 REST_FRAMEWORK = {
