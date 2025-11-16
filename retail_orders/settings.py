@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'social_django',
     'sorl.thumbnail',
+    'cachalot',
 ]
 
 
@@ -67,8 +68,8 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',  # Для анонимных пользователей
-        'rest_framework.throttling.UserRateThrottle',  # Для аутентифицированных
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
         'anon': '10/minute',
@@ -170,3 +171,17 @@ SPECTACULAR_SETTINGS = {
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = 'Google-id'
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'Google-secret'
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
+CACHALOT_ENABLED = True
+CACHALOT_TIMEOUT = 60 * 60 * 24

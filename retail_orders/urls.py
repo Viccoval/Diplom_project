@@ -35,7 +35,6 @@ urlpatterns = [
     path('', RedirectView.as_view(url='api/', permanent=False)),
     path('api/', include('retail_orders.backends.urls')),
     path('api/auth/', include('retail_orders.auth_urls')),
-    path('admin/', admin.site.urls),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('auth/social/<str:backend>/', SocialAuthView.as_view(), name='social_auth'),
