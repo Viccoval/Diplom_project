@@ -35,8 +35,11 @@ INSTALLED_APPS = [
     'retail_orders',
     'drf_spectacular',
     'social_django',
-    'easy_thumbnails',
+    'sorl.thumbnail',
 ]
+
+
+THUMBNAIL_KVSTORE = 'sorl.thumbnail.kvstores.redis_kvstore.KVStore'
 
 
 THUMBNAIL_ALIASES = {

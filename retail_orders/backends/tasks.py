@@ -1,5 +1,5 @@
 from celery import shared_task
-from easy_thumbnails.files import get_thumbnailer
+from sorl.thumbnail import get_thumbnail
 import time
 
 
@@ -26,7 +26,9 @@ def generate_thumbnails(image_field, aliases):
     """
     Задача Celery для загрузки изображения.
     """
-    thumbnailer = get_thumbnailer(image_field)
-    for alias in aliases:
-        thumbnail = thumbnailer.get_thumbnail(alias)
-        print(f"Добавлена картинка: {thumbnail.url}")
+    thumb = get_thumbnail(file_path, '200x200', crop='center', quality=90)
+
+
+
+
+
